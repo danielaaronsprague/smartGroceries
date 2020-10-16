@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   TextInput,
+  CheckBox,
 } from 'react-native';
 import { Body, Right, ListItem } from 'native-base';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -19,7 +20,6 @@ import shortid from 'shortid';
 import { Ionicons } from '@expo/vector-icons';
 import { MonoText } from '../components/StyledText';
 
-// const allItems = [{'apple': 'produce'}]
 const allItems = [
   { name: 'bread', category: 'bakery', active: false },
   { name: 'eggs', category: 'dairy', active: true },
@@ -43,7 +43,7 @@ const allItems = [
 
 function HomeScreen(props) {
   const [listItems, setList] = React.useState([]);
-  const [itemDraft, modifyDraft] = React.useState('');
+  let [itemDraft, modifyDraft] = React.useState('');
   const [category, setCategory] = React.useState('produce');
   const [order, setOrder] = React.useState([
     'produce',
@@ -57,7 +57,7 @@ function HomeScreen(props) {
     'random',
     'fridge',
   ]);
-
+  let intputText = '';
   function compare(a, b) {
     let aOrder = order.indexOf(a[Object.keys(a)[0]]);
     let bOrder = order.indexOf(b[Object.keys(b)[0]]);
@@ -84,16 +84,6 @@ function HomeScreen(props) {
   return (
     <View style={styles.container}>
       <ListItem style={{ justifyContent: 'space-between' }}>
-        {/* <TextInput
-          placeholder="Add Item"
-          onChangeText={(data) => {
-            // let newDraft = itemDraft + data;
-            modifyDraft(data);
-          }}
-          style={{ width: 100, height: 20, marginTop: 0 }}
-          value={itemDraft}
-          underlineColorAndroid="transparent"
-        /> */}
         <Autocomplete
           key={shortid.generate()}
           style={styles.input}
@@ -111,13 +101,13 @@ function HomeScreen(props) {
           )}
           onChangeText={(data) => {
             console.log(data);
-            // modifyDraft(data);
+            intputText = data;
           }}
-          // noDataText={itemDraft}
+          noDataText={itemDraft}
           data={allItems}
           minimumCharactersCount={2}
           highlightText
-          // placeholder={itemDraft}
+          placeholder={itemDraft}
           valueExtractor={(item) => item.name}
           rightContent
           rightTextExtractor={(item) => item.properties}
@@ -132,6 +122,7 @@ function HomeScreen(props) {
           onValueChange={(data) => {
             console.log(data);
             setCategory(data);
+            modifyDraft(intputText);
           }}
         >
           <Picker.Item label="Produce" value="produce" />
@@ -145,17 +136,26 @@ function HomeScreen(props) {
           <Picker.Item label="Random" value="random" />
           <Picker.Item label="Fridge" value="fridge" />
         </Picker>
-        {/* <View style={{ marginLef}}> */}
         <Button
           title="+"
           onPress={() => {
+            if (
+              listItems.some((item) => item[`${itemDraft}`] === category) ||
+              listItems.some((item) => item[`${intputText}`] === category)
+            ) {
+              setList(listItems);
+              console.log('copies: ', listItems);
+            } else if (itemDraft === '' && intputText === '') {
+              setList(listItems);
+            } else if (itemDraft === '' && intputText !== '') {
+              setList([...listItems, { [intputText]: category }]);
+            } else if (itemDraft !== '') {
+              setList([...listItems, { [itemDraft]: category }]);
+            }
             modifyDraft('');
-            itemDraft !== ''
-              ? setList([...listItems, { [itemDraft]: category }])
-              : setList(listItems);
+            intputText = '';
           }}
         />
-        {/* </View> */}
       </ListItem>
       <ScrollView
         style={styles.container}
@@ -171,7 +171,7 @@ function HomeScreen(props) {
               <Body>
                 <Text style={{ color: '#000' }}>{`${category} ${name}`}</Text>
               </Body>
-              <Right>{/* <CheckBox checked={p.gotten} /> */}</Right>
+              {/* <Right>{<CheckBox checked={p.gotten} />}</Right> */}
             </ListItem>
           );
         })}
