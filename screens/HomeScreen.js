@@ -11,69 +11,58 @@ import {
 } from 'react-native';
 import { Body, Right, ListItem } from 'native-base';
 import { ScrollView } from 'react-native-gesture-handler';
+import {
+  Autocomplete,
+  withKeyboardAwareScrollView,
+} from 'react-native-dropdown-autocomplete';
+import shortid from 'shortid';
+import { Ionicons } from '@expo/vector-icons';
 import { MonoText } from '../components/StyledText';
-// const allItems = [
-// { name: 'bread', category: 'bakery', active: false },
-// { name: 'eggs', category: 'dairy', active: true },
-// { name: 'paper towels', category: 'paperGoods', active: true },
-// { name: 'milk', category: 'dairy', active: true },
-// { name: 'apples', category: 'produce', active: true },
-// { name: 'broccoli', category: 'produce', active: true },
-// { name: 'limes', category: 'produce', active: true },
-// { name: 'tequila', category: 'alcohol', active: true },
-// { name: 'beer', category: 'alcohol', active: true },
-// { name: 'tylenol', category: 'pharmacy', active: true },
-// { name: 'frozen corn', category: 'frozen', active: true },
-// { name: 'hot sauce', category: 'dryGoods', active: true },
-// { name: 'onions', category: 'produce', active: true },
-// { name: 'cauliflour', category: 'produce', active: true },
-// { name: 'cilantro', category: 'produce', active: true },
-// { name: 'dill', category: 'produce', active: true },
-// { name: 'oranges', category: 'produce', active: true },
-// { name: 'lemons', category: 'produce', active: true },
-// ];
-// const jsonItems = {
-//   bread: 'bakery',
-//   eggs: 'dairy',
-//   milk: 'dairy',
-// };
-// { bread: "backery" },
-// { milk: "dairy" },
-// const listItems = [
-//   { id: 1, name: "bread", category: "bakery" },
-//   { id: 2, name: "eggs", category: "dairy" },
-//   { id: 3, name: "paper towels", category: "paper-goods" },
-//   { id: 4, name: "milk", category: "dairy" },
-//   { id: 5, name: "apples", category: "produce" },
-//   { id: 6, name: "broccoli", category: "produce" },
-//   { id: 7, name: "limes", category: "produce" },
-//   { id: 8, name: "tequila", category: "alcohol" },
-//   { id: 9, name: "beer", category: "fridge" },
-//   { id: 10, name: "tylenol", category: "pharmacy" },
-//   { id: 11, name: "frozen corn", category: "frozen" },
-//   { id: 12, name: "hot sauce", category: "random" },
-// ];
-export default function HomeScreen() {
+
+// const allItems = [{'apple': 'produce'}]
+const allItems = [
+  { name: 'bread', category: 'bakery', active: false },
+  { name: 'eggs', category: 'dairy', active: true },
+  { name: 'paper towels', category: 'paperGoods', active: true },
+  { name: 'milk', category: 'dairy', active: true },
+  { name: 'apples', category: 'produce', active: true },
+  { name: 'broccoli', category: 'produce', active: true },
+  { name: 'limes', category: 'produce', active: true },
+  { name: 'tequila', category: 'alcohol', active: true },
+  { name: 'beer', category: 'alcohol', active: true },
+  { name: 'tylenol', category: 'pharmacy', active: true },
+  { name: 'frozen corn', category: 'frozen', active: true },
+  { name: 'hot sauce', category: 'dryGoods', active: true },
+  { name: 'onions', category: 'produce', active: true },
+  { name: 'cauliflour', category: 'produce', active: true },
+  { name: 'cilantro', category: 'produce', active: true },
+  { name: 'dill', category: 'produce', active: true },
+  { name: 'oranges', category: 'produce', active: true },
+  { name: 'lemons', category: 'produce', active: true },
+];
+
+function HomeScreen(props) {
   const [listItems, setList] = React.useState([]);
   const [itemDraft, modifyDraft] = React.useState('');
   const [category, setCategory] = React.useState('produce');
-  const [order, setOrder] = React.useState({
-    produce: 1,
-    bakery: 2,
-    dairy: 3,
-    booze: 4,
-    paperGoods: 5,
-    frozen: 6,
-    dryGoods: 7,
-    pharmacy: 8,
-    random: 9,
-    fridge: 10,
-  });
+  const [order, setOrder] = React.useState([
+    'produce',
+    'bakery',
+    'dairy',
+    'booze',
+    'paperGoods',
+    'frozen',
+    'dryGoods',
+    'pharmacy',
+    'random',
+    'fridge',
+  ]);
+
   function compare(a, b) {
-    let aCategory = a[Object.keys(a)[0]];
-    let bCategory = b[Object.keys(b)[0]];
-    if (order[aCategory] > order[bCategory]) return 1;
-    if (order[bCategory] > order[aCategory]) return -1;
+    let aOrder = order.indexOf(a[Object.keys(a)[0]]);
+    let bOrder = order.indexOf(b[Object.keys(b)[0]]);
+    if (aOrder > bOrder) return 1;
+    if (bOrder > aOrder) return -1;
     return 0;
   }
   async function addNewProduct(name, category) {
@@ -83,10 +72,19 @@ export default function HomeScreen() {
       listItems: newProductsList,
     });
   }
+  function handleSelectItem(item, index) {
+    const { onDropdownClose } = props;
+    modifyDraft(item.name);
+    setCategory(item.category);
+    onDropdownClose();
+
+    console.log(item);
+  }
+  const { scrollToInput, onDropdownClose, onDropdownShow } = props;
   return (
     <View style={styles.container}>
       <ListItem style={{ justifyContent: 'space-between' }}>
-        <TextInput
+        {/* <TextInput
           placeholder="Add Item"
           onChangeText={(data) => {
             // let newDraft = itemDraft + data;
@@ -95,6 +93,34 @@ export default function HomeScreen() {
           style={{ width: 100, height: 20, marginTop: 0 }}
           value={itemDraft}
           underlineColorAndroid="transparent"
+        /> */}
+        <Autocomplete
+          key={shortid.generate()}
+          style={styles.input}
+          scrollToInput={(ev) => scrollToInput(ev)}
+          handleSelectItem={(item, id) => handleSelectItem(item, id)}
+          onDropdownClose={() => onDropdownClose()}
+          onDropdownShow={() => onDropdownShow()}
+          renderIcon={() => (
+            <Ionicons
+              name="ios-add-circle-outline"
+              size={20}
+              color="#c7c6c1"
+              style={styles.plus}
+            />
+          )}
+          onChangeText={(data) => {
+            console.log(data);
+            // modifyDraft(data);
+          }}
+          // noDataText={itemDraft}
+          data={allItems}
+          minimumCharactersCount={2}
+          highlightText
+          // placeholder={itemDraft}
+          valueExtractor={(item) => item.name}
+          rightContent
+          rightTextExtractor={(item) => item.properties}
         />
         <Picker
           selectedValue={category}
@@ -183,7 +209,15 @@ HomeScreen.navigationOptions = {
   header: null,
 };
 
+export default withKeyboardAwareScrollView(HomeScreen);
+
 const styles = StyleSheet.create({
+  plus: {
+    position: 'absolute',
+    left: 15,
+    top: 10,
+  },
+  input: { maxHeight: 40 },
   button: {
     height: 10,
     width: 10,
